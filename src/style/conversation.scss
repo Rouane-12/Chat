@@ -1,0 +1,30 @@
+.conversation-list-page {
+    padding: 20px;
+
+    h1 {
+        text-align: center;
+        color: #6b21a8;
+    }
+
+    .conversation-list {
+        list-style: none;
+        padding: 0;
+        max-width: 400px;
+        margin: 20px auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .conversation-item {
+            padding: 10px 15px;
+            background-color: #e5e7eb;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: #d1d5db;
+            }
+        }
+    }
+}

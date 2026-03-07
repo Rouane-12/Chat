@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 
-const API_URL = "https://backend-bs.evans-djossouvi.com";
+const API_URL = "http://localhost:5300";
 
 const token = localStorage.getItem("token");
 if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -148,7 +148,6 @@ function Avatar({ user, size = 40, online = false }) {
   );
 }
 
-// ─── NegotiationBubble ────────────────────────────────────────────────────────
 function NegotiationBubble({ msg, isMine, onAccept, onCounter, onRefund }) {
   const { negotiationPart, product } = msg;
   const [counterVal, setCounterVal] = useState("");
@@ -326,7 +325,6 @@ function btnStyle(color) {
   };
 }
 
-// ─── Message bubble ───────────────────────────────────────────────────────────
 function MessageBubble({ msg, isMine, onAccept, onCounter, onRefund }) {
   if (msg.isNegotiationPart && msg.negotiationPart) {
     return (
@@ -406,7 +404,6 @@ function MessageBubble({ msg, isMine, onAccept, onCounter, onRefund }) {
   );
 }
 
-// ─── ConversationList ─────────────────────────────────────────────────────────
 function ConversationList({ conversations, activeId, onSelect, onlineUsers }) {
   return (
     <div style={{ height: "100%", overflowY: "auto", padding: "0 8px" }}>
@@ -532,7 +529,6 @@ function ConversationList({ conversations, activeId, onSelect, onlineUsers }) {
   );
 }
 
-// ─── ChatWindow ───────────────────────────────────────────────────────────────
 function ChatWindow({
   conversationId,
   conversations,
@@ -982,7 +978,6 @@ function ChatWindow({
   );
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState() {
   return (
     <div
@@ -1020,7 +1015,6 @@ function EmptyState() {
   );
 }
 
-// ─── Main ChatPage ────────────────────────────────────────────────────────────
 export default function ChatPage() {
   const [activeConversation, setActiveConversation] = useState(null);
   const [conversations, setConversations] = useState([]);

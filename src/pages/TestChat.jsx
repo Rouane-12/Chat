@@ -12,7 +12,7 @@ function decodeToken(t) {
     const payload = JSON.parse(atob(t.split(".")[1]));
     return {
       id: payload.id || payload._id,
-      username: payload.username || "Moi",
+      firstname: payload.firstname || "Moi",
       avatar: payload.avatar || null,
     };
   } catch {
@@ -21,7 +21,7 @@ function decodeToken(t) {
 }
 const CURRENT_USER = decodeToken(token) || {
   id: null,
-  username: "Moi",
+  firstname: "Moi",
   avatar: null,
 };
 
@@ -109,7 +109,7 @@ function Avatar({ user, size = 40, online = false }) {
     "#E8C03D",
     "#8B3DE8",
   ];
-  const color = colors[(user?.username?.charCodeAt(0) || 0) % colors.length];
+  const color = colors[(user?.firstname?.charCodeAt(0) || 0) % colors.length];
   return (
     <div style={{ position: "relative", flexShrink: 0 }}>
       <div
@@ -128,7 +128,7 @@ function Avatar({ user, size = 40, online = false }) {
           letterSpacing: "-0.5px",
         }}
       >
-        {getInitial(user?.username)}
+        {getInitial(user?.firstname)}
       </div>
       {online && (
         <div
@@ -464,7 +464,7 @@ function ConversationList({ conversations, activeId, onSelect, onlineUsers }) {
                     color: isActive ? "#fff" : "#ccc",
                   }}
                 >
-                  {other.username}
+                  {other.firstname}
                 </span>
                 <span
                   style={{
@@ -604,7 +604,7 @@ function ChatWindow({
     if (socket)
       socket.emit("negotiation:start", {
         receiverId: otherId,
-        productId: conv?.product?._id || null,
+        productId: "699db9e86d823d8a014561ef",
         amount: Number(negAmount),
       });
     setShowNegModal(false);
@@ -715,7 +715,7 @@ function ChatWindow({
               color: "#fff",
             }}
           >
-            {other?.username}
+            {other?.firstname}
           </div>
           <div
             style={{
@@ -912,7 +912,7 @@ function ChatWindow({
                 letterSpacing: 0.5,
               }}
             >
-              À {other?.username?.toUpperCase()}
+              À {other?.firstname?.toUpperCase()}
             </div>
             <input
               type="number"

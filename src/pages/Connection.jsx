@@ -15,7 +15,7 @@ function Login() {
     const handleLogin = async (values, { setSubmitting }) => {
         try {
             const response = await axios.post(
-                "https://beautyswap-back.vercel.app/api/auth/login",
+                "https://backend-bs.evans-djossouvi.com/api/auth/login",
                 values
             );
 
@@ -26,7 +26,7 @@ function Login() {
 
             axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-            const userResponse = await axios.get("https://beautyswap-back.vercel.app/api/user/me");
+            const userResponse = await axios.get("https://backend-bs.evans-djossouvi.com/api/user/me");
             localStorage.setItem("user", JSON.stringify(userResponse.data));
 
             navigate("/conversations");

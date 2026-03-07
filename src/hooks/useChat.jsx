@@ -14,7 +14,7 @@ export function useAblyConnection() {
         const initConnection = async () => {
             try {
                 ablyRef.current = new Ably.Realtime({
-                    authUrl: 'https://beautyswap-back.vercel.app/api/auth/ably-token',
+                    authUrl: 'https://backend-bs.evans-djossouvi.com/api/auth/ably-token',
                     authHeaders: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -140,7 +140,7 @@ export function useConversations(userId) {
             try {
                 setLoading(true);
                 const response = await axios.get(
-                    'https://beautyswap-back.vercel.app/api/conversation/user',
+                    'https://backend-bs.evans-djossouvi.com/api/conversation/user',
                     {
                         headers: { Authorization: `Bearer ${token}` },
                     }
@@ -232,7 +232,7 @@ export function useMessages(conversationId) {
             setLoading(true);
             try {
                 const response = await axios.get(
-                    `https://beautyswap-back.vercel.app/api/conversation/${conversationId}/messages`,
+                    `https://backend-bs.evans-djossouvi.com/api/conversation/${conversationId}/messages`,
                     {
                         headers: { Authorization: `Bearer ${token}` },
                     }
@@ -242,7 +242,7 @@ export function useMessages(conversationId) {
                 console.log('✅ Messages chargés:', data.messages?.length || 0);
 
                 await axios.put(
-                    `https://beautyswap-back.vercel.app/api/conversation/${conversationId}/read`,
+                    `https://backend-bs.evans-djossouvi.com/api/conversation/${conversationId}/read`,
                     {
                         headers: { Authorization: `Bearer ${token}` },
                     }
@@ -313,7 +313,7 @@ export default function ChatDemo() {
         try {
             // 🔹 Envoi au backend
             const response = await axios.post(
-                `https://beautyswap-back.vercel.app/api/conversation/${activeConversation}/messages`,
+                `https://backend-bs.evans-djossouvi.com/api/conversation/${activeConversation}/messages`,
                 { content: messageText },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

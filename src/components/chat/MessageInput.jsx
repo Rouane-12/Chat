@@ -30,7 +30,7 @@ function MessageInput({ conversationId, onSend }) {
             console.log("📤 Envoi du message...");
 
             const response = await axios.post(
-                `https://beautyswap-back.vercel.app/api/conversation/${conversationId}/messages`,
+                `https://backend-bs.evans-djossouvi.com/api/conversation/${conversationId}/messages`,
                 formData,
                 {
                     headers: {

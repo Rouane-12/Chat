@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 
-const API_URL = "http://localhost:5300";
+const API_URL = "https://backend-bs.evans-djossouvi.com";
 
 const token = localStorage.getItem("token");
 if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;

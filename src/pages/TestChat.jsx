@@ -546,7 +546,6 @@ function ChatWindow({
 
   const conv = conversations.find((c) => c._id === conversationId);
   const other = conv ? getOtherParticipant(conv, CURRENT_USER.id) : null;
-  // MongoDB retourne _id, normaliser
   const otherId = other?._id || other?.id;
   const msgs = messages[conversationId] || [];
 
@@ -600,7 +599,6 @@ function ChatWindow({
       ...prev,
       [conversationId]: [...(prev[conversationId] || []), optimistic],
     }));
-    // Émettre via socket
     if (socket)
       socket.emit("negotiation:start", {
         receiverId: otherId,
@@ -1025,6 +1023,9 @@ export default function ChatPage() {
   const [error, setError] = useState(null);
   const { socket, connected } = useSocket();
 
+  // ✅ FIX: ref pour tracker activeConversation dans les closures socket
+  const activeConversationRef = useRef(null);
+
   // ─── Charger les conversations via axios au mount ───────────────────────────
   useEffect(() => {
     setLoadingConvs(true);
@@ -1037,16 +1038,47 @@ export default function ChatPage() {
       .finally(() => setLoadingConvs(false));
   }, []);
 
-  // ─── Charger les messages d'une conversation via axios ──────────────────────
+  // ─── Charger les messages + marquer comme lus ────────────────────────────────
   const loadMessages = useCallback(
     async (convId) => {
-      if (messages[convId]) return; // déjà chargés
+      // ✅ FIX: utiliser getSocket() pour éviter les problèmes de closure
+      const s = getSocket();
+
+      if (messages[convId]) {
+        // Messages déjà en cache → juste marquer les non lus
+        const unread = (messages[convId] || [])
+          .filter(
+            (m) =>
+              !m.read &&
+              (m.receiver?._id || m.receiver)?.toString() ===
+                CURRENT_USER.id?.toString(),
+          )
+          .map((m) => m._id);
+        if (unread.length > 0) {
+          s.emit("message:read", { messageIds: unread });
+        }
+        return;
+      }
+
       setLoadingMsgs(true);
       try {
         const data = await api.getConversation(convId);
         // L'API retourne messages dans l'ordre inverse (sort: -1), on remet à l'endroit
         const msgs = [...(data.messages || [])].reverse();
         setMessages((prev) => ({ ...prev, [convId]: msgs }));
+
+        // ✅ FIX: marquer comme lus après chargement
+        const unread = msgs
+          .filter(
+            (m) =>
+              !m.read &&
+              (m.receiver?._id || m.receiver)?.toString() ===
+                CURRENT_USER.id?.toString(),
+          )
+          .map((m) => m._id);
+        if (unread.length > 0) {
+          s.emit("message:read", { messageIds: unread });
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Erreur chargement messages");
       } finally {
@@ -1074,10 +1106,15 @@ export default function ChatPage() {
 
     // Nouveau message reçu
     socket.on("message:new", ({ message, conversationId }) => {
+      // ✅ FIX: utiliser le ref (pas le state) pour avoir la valeur courante
+      const isActive = activeConversationRef.current === conversationId;
+      const s = getSocket();
+
       setMessages((prev) => ({
         ...prev,
         [conversationId]: [...(prev[conversationId] || []), message],
       }));
+
       setConversations((prev) =>
         prev
           .map((c) =>
@@ -1085,13 +1122,19 @@ export default function ChatPage() {
               ? {
                   ...c,
                   messages: [message],
-                  unreadCount: (c.unreadCount || 0) + 1,
+                  // ✅ FIX: ne pas incrémenter unread si la conv est active
+                  unreadCount: isActive ? 0 : (c.unreadCount || 0) + 1,
                   updatedAt: message.createdAt,
                 }
               : c,
           )
           .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)),
       );
+
+      // ✅ FIX: auto-lire si la conversation est ouverte
+      if (isActive) {
+        s.emit("message:read", { messageIds: [message._id] });
+      }
     });
 
     // Confirmation envoi (remplace l'optimiste)
@@ -1115,6 +1158,9 @@ export default function ChatPage() {
 
     // Négociation reçue
     socket.on("negotiation:new", ({ message, conversationId }) => {
+      const isActive = activeConversationRef.current === conversationId;
+      const s = getSocket();
+
       setMessages((prev) => ({
         ...prev,
         [conversationId]: [...(prev[conversationId] || []), message],
@@ -1126,13 +1172,17 @@ export default function ChatPage() {
               ? {
                   ...c,
                   messages: [message],
-                  unreadCount: (c.unreadCount || 0) + 1,
+                  unreadCount: isActive ? 0 : (c.unreadCount || 0) + 1,
                   updatedAt: message.createdAt,
                 }
               : c,
           )
           .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)),
       );
+
+      if (isActive) {
+        s.emit("message:read", { messageIds: [message._id] });
+      }
     });
 
     // Mise à jour statut négociation
@@ -1186,20 +1236,14 @@ export default function ChatPage() {
   const handleSelectConversation = useCallback(
     (id) => {
       setActiveConversation(id);
+      // ✅ FIX: sync du ref immédiatement
+      activeConversationRef.current = id;
       setConversations((prev) =>
         prev.map((c) => (c._id === id ? { ...c, unreadCount: 0 } : c)),
       );
       loadMessages(id);
-      // Marquer les messages non lus comme lus
-      const unread = (messages[id] || [])
-        .filter(
-          (m) => !m.read && (m.receiver?._id || m.receiver) === CURRENT_USER.id,
-        )
-        .map((m) => m._id);
-      if (unread.length > 0 && socket)
-        socket.emit("message:read", { messageIds: unread });
     },
-    [loadMessages, messages, socket],
+    [loadMessages],
   );
 
   const totalUnread = conversations.reduce(
